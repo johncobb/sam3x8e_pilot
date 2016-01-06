@@ -78,8 +78,22 @@ extern volatile uint32_t g_ul_ms_ticks;
 
 // Invensense IMU TWI interface
 
+extern void imu_process_interrupt(uint32_t id, uint32_t mask);
+
+
 #define IMU_TWI		TWI1
 #define IMU_TWI_ID	ID_TWI1
+
+#define IMU_IRQ_PIO					PIOC
+#define IMU_IRQ_PIO_ID				ID_PIOC
+#define IMU_IRQ_IDX					PIO_PC23_IDX
+#define IMU_IRQ_MASK				PIO_PC23
+#define IMU_IRQ_IRQ					PIOC_IRQn
+
+
+#define IMU_IRQ_TYPE				PIO_INPUT
+#define IMU_IRQ_ATTR				(PIO_IT_RISE_EDGE | PIO_DEFAULT)
+#define IMU_IRQ_FLAGS				(IMU_IRQ_TYPE | IMU_IRQ_ATTR)
 
 
 // WAN USART1

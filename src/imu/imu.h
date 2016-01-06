@@ -12,8 +12,9 @@
 #include "imu_def.h"
 
 
-#define IMU_ADDRESS			0x68
-#define IMU_BUFFER_LEN		14
+#define IMU_ADDRESS					0x68
+#define IMU_BUFFER_LEN				14
+#define IMU_INTERRUPT_ENABLE		1
 
 
 void imu_init(void);
@@ -33,7 +34,12 @@ void imu_get_mag(int16_t *x, int16_t *y, int16_t *z);
 
 uint8_t imu_get_dlpf_mode();
 void imu_set_dlpf_mode(uint8_t mode);
+void imu_set_rate(uint8_t rate);
 void imu_set_int_enabled(uint8_t enabled);
+uint8_t imu_get_int_dataready_status(void);
+
+bool imu_irq_ready(void);
+void imu_irq_reset(void);
 
 
 

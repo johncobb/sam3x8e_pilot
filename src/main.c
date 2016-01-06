@@ -2,15 +2,12 @@
 #include <stdio.h>
 #include <string.h>
 
-
+#include <cph.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "timers.h"
-#include "asf.h"
-#include "conf_board.h"
 #include "cli_tasks.h"
 #include "comm.h"
-#include "sysclk.h"
 #include "app_task.h"
 
 
@@ -49,10 +46,6 @@ delete-task:
  *
  *
  */
-
-
-extern volatile uint32_t g_ul_ms_ticks = 0;
-
 
 
 /* The priorities at which various tasks will get created. */
@@ -102,7 +95,7 @@ extern void vApplicationIdleHook(void) {
 
 
 extern void vApplicationTickHook(void) {
-	g_ul_ms_ticks++;
+	g_cph_millis++;
 }
 
 bool pin_powmon = false;
@@ -153,12 +146,17 @@ static void configure_console(void) {
 
 	stdio_serial_init(PRINTF_USART, &uart_serial_options);
 
+
 	usart_enable_tx(PRINTF_USART);
 	usart_enable_rx(PRINTF_USART);
 }
 
 int main(void) {
-	sysclk_init();
+//	sysclk_init();
+
+
+
+	cph_clock_init();
 	board_init();
 
 	configure_console();

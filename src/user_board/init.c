@@ -44,10 +44,13 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#include "compiler.h"
+
+
+
 
 #include "board.h"
 #include "conf_board.h"
+#include "pio_handler.h"
 
 
 
@@ -122,7 +125,19 @@ void board_init(void)
 #endif
 
 
+	pio_configure_pin(IMU_IRQ_IDX, IMU_IRQ_FLAGS);
 
+	pio_set_input(IMU_IRQ_PIO, IMU_IRQ_MASK, PIO_DEFAULT);
+	pio_handler_set(IMU_IRQ_PIO, IMU_IRQ_PIO_ID, IMU_IRQ_MASK, IMU_IRQ_ATTR, imu_process_interrupt);
+	pio_enable_interrupt(IMU_IRQ_PIO, IMU_IRQ_MASK);
+
+	NVIC_DisableIRQ(PIOC_IRQn);
+	NVIC_ClearPendingIRQ(PIOC_IRQn);
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY 255
+	NVIC_SetPriority(PIOC_IRQn, configLIBRARY_LOWEST_INTERRUPT_PRIORITY);//TODO: Is this correct IRQ priority w/ FreeRTOS?
+	NVIC_EnableIRQ(PIOC_IRQn);
+
+	pmc_enable_periph_clk(ID_PIOC);
 
 
 }

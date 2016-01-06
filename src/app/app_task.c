@@ -7,8 +7,9 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
-
+#include <cph.h>
 /* FreeRTOS includes. */
 #include "FreeRTOS.h"
 #include "task.h"
@@ -18,13 +19,15 @@
 #include "sysclk.h"
 #include "tcpip.h"
 #include "app_task.h"
-#include "imu.h"
-#include "MadgwickAHRS.h"
+#include "gimbal.h"
 
 xSemaphoreHandle app_start_signal = 0;
 
 static volatile bool start_task = false;
 static void app_handler_task(void *pvParameters);
+static void balance(void);
+static void calc_pid(void);
+
 
 
 void create_app_task(uint16_t stack_depth_words, unsigned portBASE_TYPE task_priority)
@@ -42,7 +45,6 @@ void create_app_task(uint16_t stack_depth_words, unsigned portBASE_TYPE task_pri
 
 void app_start(void)
 {
-
 	printf("app_start\r\n");
 	if(xSemaphoreTake(app_start_signal, portMAX_DELAY)) {
 		start_task = true;
@@ -50,45 +52,68 @@ void app_start(void)
 }
 
 
-int16_t axis_rotation[3];
-int16_t axis_acceleration[3];
-int16_t axis_mag[3];
-
 static void app_handler_task(void *pvParameters)
 {
+	gimbal_init();
 
-	imu_init();
-
-	printf("imu test: %d\r\n", imu_test_connection() == 1);
-	vTaskDelay(10);
-
-	printf("imu running...\r\n");
 	while(true) {
 
-
-//		imu_get_rotation(&axis_rotation[0], &axis_rotation[1], &axis_rotation[2]);
-//		printf("axis_rotation[x,y,z]: %d %d %d\r\n", axis_rotation[0], axis_rotation[1], axis_rotation[2]);
-
-//		imu_get_acceleration(&axis_acceleration[0], &axis_acceleration[1], &axis_acceleration[2]);
-//		printf("axis_acceleration[x,y,z]: %d %d %d\r\n", axis_acceleration[0], axis_acceleration[1], axis_acceleration[2]);
-
-//		imu_get_mag(&axis_mag[0], &axis_mag[1], &axis_mag[2]);
-//		printf("m:xyz %d %d %d\r\n", axis_mag[0], axis_mag[1], axis_mag[2]);
-
-		int16_t ax, ay, az, gx, gy, gz, mx, my, mz;
-//		imu_getmotion6(&ax, &ay, &az, &gx, &gy, &gz);
-//		printf("a:xyz %d %d %d g:xyz %d %d %d\r\n", ax, ay, az, gx, gy, gz);
-
-
-
-		imu_getmotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
-//		printf("a:xyz %d %d %d g:xyz %d %d %d m:xyz %d %d %d\r\n", ax, ay, az, gx, gy, gz, mx, my, mz);
-
-		madgwick_ahrs_update(gx, gy, gz, ax, ay, az, mx, my, mz);
-
-		printf("q0: %f q1: %f q2: %f q3: %f\r\n", q0, q1, q2, q3);
-
-		vTaskDelay(250);
+		gimbal_tick();
+		calc_pid();
+		vTaskDelay(10);
 
 	}
 }
+
+void balance(void)
+{
+
+}
+
+static float k_p = 1.0f;
+static float k_i = .05f;
+static float k_d = .25f;
+
+static float center_val = 0.0f;
+static float integral = 0.0f;
+static float last_error = 0.0f;
+static float pid_val_pitch = 0.0f;
+static float pid_val_roll = 0.0f;
+static float pid_val_yaw = 0.0f;
+
+static uint32_t t_now = 0;
+static uint32_t t_lastread = 0;
+
+static uint32_t pid_printf_timeout = 0;
+
+void calc_pid(void)
+{
+
+	uint32_t t_now = cph_get_millis();
+
+	float delta_t = (t_now-t_lastread)/1000.0f;
+
+	float pid_error = (center_val - roll);
+	float p_term = k_p * pid_error;
+	integral += pid_error * delta_t;
+	integral = constrain(integral, -1.0f, 1.0f); // limit the error
+	float i_term = (k_i * 100.0f) * integral;
+	float d_term = (k_d * 100.0f) * (pid_error - last_error)/delta_t;
+	last_error = pid_error;
+
+	pid_val_pitch = p_term + i_term + d_term;
+
+	t_lastread = t_now;
+
+
+	if(cph_get_millis() > pid_printf_timeout) {
+		printf("pid %f err %f int %f dlt %f\r\n", pid_val_pitch, pid_error, integral, delta_t);
+		pid_printf_timeout = cph_get_millis() + 100;
+	}
+
+}
+
+
+
+
+

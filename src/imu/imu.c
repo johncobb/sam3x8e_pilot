@@ -16,6 +16,26 @@
 uint8_t imu_address = IMU_ADDRESS;
 static uint8_t imu_buffer[I2C_BUFFER_LENGTH] = {0};
 
+static volatile uint8_t irq_set = 0x00;
+
+
+
+
+
+void imu_process_interrupt(uint32_t id, uint32_t mask)
+{
+	irq_set = 0x01;
+}
+
+bool imu_irq_ready(void)
+{
+	return irq_set;
+}
+
+void imu_irq_reset(void)
+{
+	irq_set = 0x00;
+}
 
 void imu_init(void)
 {
@@ -31,16 +51,22 @@ void imu_init(void)
 
 //	imu_reset();
 //	vTaskDelay(100);
+
 	imu_set_clock_source(MPU6050_CLOCK_PLL_XGYRO);
 	vTaskDelay(10);
-	imu_set_sleep_enabled(false);
-	vTaskDelay(10);
+
 	imu_set_full_scale_gyro_range(MPU6050_GYRO_FS_250);
 	vTaskDelay(10);
+
 	imu_set_full_scale_accel_range(MPU6050_ACCEL_FS_2);
 	vTaskDelay(10);
-	imu_set_int_enabled(0);
+
+	imu_set_sleep_enabled(false);
 	vTaskDelay(10);
+
+	imu_set_int_enabled(IMU_INTERRUPT_ENABLE);
+	vTaskDelay(10);
+
 }
 
 void imu_reset(void)
@@ -56,6 +82,16 @@ void imu_reset(void)
 bool imu_test_connection(void)
 {
 	return imu_get_device_id() == 0x34;
+}
+
+uint8_t imu_get_int_dataready_status(void)
+{
+	memset(imu_buffer, 0, sizeof(imu_buffer));
+
+	readBits(imu_address, MPU6050_RA_INT_STATUS, MPU6050_INTERRUPT_DATA_RDY_BIT, 1, imu_buffer, I2CDEV_DEFAULT_READ_TIMEOUT);
+
+	return imu_buffer[0];
+
 }
 
 void imu_set_clock_source(uint8_t source)
@@ -219,5 +255,10 @@ void imu_set_dlpf_mode(uint8_t mode)
 void imu_set_int_enabled(uint8_t enabled)
 {
 	writeByte(imu_address, MPU6050_RA_INT_ENABLE, enabled);
+}
+
+void imu_set_rate(uint8_t rate)
+{
+	writeByte(imu_address, MPU6050_RA_SMPLRT_DIV, rate);
 }
 

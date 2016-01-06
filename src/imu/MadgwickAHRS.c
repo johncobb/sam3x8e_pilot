@@ -14,14 +14,15 @@
 
 //---------------------------------------------------------------------------------------------------
 // Header files
-
+#include "cph_board.h"
 #include "MadgwickAHRS.h"
 #include <math.h>
 
 //---------------------------------------------------------------------------------------------------
 // Definitions
 
-#define sampleFreq	512.0f		// sample frequency in Hz
+//#define sampleFreq	512.0f		// sample frequency in Hz
+float sampleFreq = 0.0f;
 #define betaDef		0.1f		// 2 * proportional gain
 
 //---------------------------------------------------------------------------------------------------
@@ -40,6 +41,8 @@ float invSqrt(float x);
 
 //---------------------------------------------------------------------------------------------------
 // AHRS algorithm update
+
+uint32_t t_delta, t_now, t_last = 0;
 
 void madgwick_ahrs_update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz) {
 	float recipNorm;
@@ -124,6 +127,18 @@ void madgwick_ahrs_update(float gx, float gy, float gz, float ax, float ay, floa
 	}
 
 	// Integrate rate of change of quaternion to yield quaternion
+//	q0 += qDot1 * (1.0f / sampleFreq);
+//	q1 += qDot2 * (1.0f / sampleFreq);
+//	q2 += qDot3 * (1.0f / sampleFreq);
+//	q3 += qDot4 * (1.0f / sampleFreq);
+
+	t_now = g_ul_ms_ticks;
+	t_delta = t_now -t_last;
+
+	sampleFreq = ((float)t_delta)/1000.0f;
+
+	t_last = t_now;
+
 	q0 += qDot1 * (1.0f / sampleFreq);
 	q1 += qDot2 * (1.0f / sampleFreq);
 	q2 += qDot3 * (1.0f / sampleFreq);
