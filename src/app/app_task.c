@@ -97,8 +97,11 @@ void calc_pid(void)
 	float p_term = k_p * pid_error;
 	integral += pid_error * delta_t;
 	integral = constrain(integral, -1.0f, 1.0f); // limit the error
-	float i_term = (k_i * 100.0f) * integral;
-	float d_term = (k_d * 100.0f) * (pid_error - last_error)/delta_t;
+//	float i_term = (k_i * 100.0f) * integral;
+//	float d_term = (k_d * 100.0f) * (pid_error - last_error)/delta_t;
+
+	float i_term = k_i * integral;
+	float d_term = k_d * (pid_error - last_error)/delta_t;
 	last_error = pid_error;
 
 	pid_val_pitch = p_term + i_term + d_term;
