@@ -20,6 +20,7 @@
 #include "tcpip.h"
 #include "app_task.h"
 #include "gimbal.h"
+#include "stepper.h"
 
 xSemaphoreHandle app_start_signal = 0;
 
@@ -27,6 +28,8 @@ static volatile bool start_task = false;
 static void app_handler_task(void *pvParameters);
 static void balance(void);
 static void calc_pid(void);
+
+static void run_stepper_test(void);
 
 
 
@@ -51,10 +54,46 @@ void app_start(void)
 	}
 }
 
+static void run_stepper_test(void)
+{
+	printf("starting stepper motor test\r\n");
+	printf("rotating - forward 360 degrees (full step)\r\n");
+	stepper_init(PIN_MS1, PIN_MS2, PIN_STEP, PIN_SLEEP, PIN_DIR, STEPPER_RPM, STEPPER_STEPS_PER_REV);
+	stepper_wake();
+	stepper_rotate(360); // rotate 360 single step
+	vTaskDelay(1000);
+
+	printf("rotating - reverse 360 degrees (half step)\r\n");
+	stepper_setmode(STEP_HALF);
+	stepper_reverse();
+	stepper_rotate(360); // rotate reverse 360 half step
+
+	printf("set speed to 120 rpm\r\n");
+	stepper_setspeed(120); // set speed to 120 rpm
+
+	printf("rotating - forward 360 degrees (quarter step)\r\n");
+	stepper_setmode(STEP_QUARTER);
+	stepper_reverse();
+	stepper_rotate(360); // rotate forward 360 quarter step
+
+	printf("rotating - reverse 360 degrees (eight step)\r\n");
+	stepper_setmode(STEP_EIGHT);
+	stepper_rotate(-360); // rotate reverse 360 eight step
+
+	printf("putting motor in sleep mode\r\n");
+	stepper_sleep(); // allow motor shaft to move freely
+}
+
 
 static void app_handler_task(void *pvParameters)
 {
+
+	run_stepper_test();
+
 	gimbal_init();
+
+
+
 
 	while(true) {
 
