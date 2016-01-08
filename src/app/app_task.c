@@ -17,7 +17,6 @@
 #include "semphr.h"
 #include "freertos_usart_serial.h"
 #include "sysclk.h"
-#include "tcpip.h"
 #include "app_task.h"
 #include "gimbal.h"
 #include "stepper.h"
@@ -58,10 +57,21 @@ static void run_stepper_test(void)
 {
 	printf("starting stepper motor test\r\n");
 	printf("rotating - forward 360 degrees (full step)\r\n");
-	stepper_init(PIN_MS1, PIN_MS2, PIN_STEP, PIN_SLEEP, PIN_DIR, STEPPER_RPM, STEPPER_STEPS_PER_REV);
+	stepper_init(PIN_STEPPERMS1_IDX, PIN_STEPPERMS2_IDX, PIN_STEPPERSTEP_IDX, PIN_STEPPERSLEEP_IDX, PIN_STEPPERDIR_IDX, STEPPER_RPM, STEPPER_STEPS_PER_REV);
 	stepper_wake();
-	stepper_rotate(360); // rotate 360 single step
-	vTaskDelay(1000);
+//	stepper_rotate(360); // rotate 360 single step
+//	vTaskDelay(1000);
+
+
+	while(true) {
+		stepper_rotate(360);
+		printf("wait 1 sec.\r\n");
+		vTaskDelay(1000);
+//		stepper_reverse();
+//		stepper_rotate(-360);
+//		vTaskDelay(1000);
+//		stepper_reverse();
+	}
 
 	printf("rotating - reverse 360 degrees (half step)\r\n");
 	stepper_setmode(STEP_HALF);
@@ -92,9 +102,6 @@ static void app_handler_task(void *pvParameters)
 
 	gimbal_init();
 
-
-
-
 	while(true) {
 
 		gimbal_tick();
@@ -108,6 +115,14 @@ void balance(void)
 {
 
 }
+
+//https://github.com/br3ttb/Arduino-PID-Library/blob/master/examples/PID_AdaptiveTunings/PID_AdaptiveTunings.ino
+//float cons_kp = 1.0f;
+//float cons_ki = 0.05f;
+//float cons_kd = 0.25f;
+//float agg_kp = 4.0f;
+//float agg_ki = 0.2f;
+//float agg_kd = 1.0f;
 
 static float k_p = 1.0f;
 static float k_i = .05f;

@@ -7,7 +7,6 @@
 #include "task.h"
 #include "timers.h"
 #include "cli_tasks.h"
-#include "comm.h"
 #include "app_task.h"
 
 

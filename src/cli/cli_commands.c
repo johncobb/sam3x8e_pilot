@@ -60,8 +60,6 @@
 #include "FreeRTOS_CLI.h"
 #include "semphr.h"
 #include "cli.h"
-#include "modem.h"
-#include "tcpip.h"
 #include "app_task.h"
 
 /*
@@ -180,106 +178,6 @@ static const CLI_Command_Definition_t delete_task_command_definition =
 };
 
 
-void dispatch_tcp_connect(void);
-
-/* Structure that defines the "delete-task" command line command.  This deletes
-the task that was previously created using the "create-command" command. */
-static const CLI_Command_Definition_t tcp_connect_definition =
-{
-	(const int8_t *const) "connect",
-	(const int8_t *const) "connect:\r\n tells tcpip module to establish connection\r\n\r\n",
-	dispatch_tcp_connect, /* The function to run. */
-	0 /* A single parameter should be entered. */
-};
-
-#include "http_handler.h"
-
-void dispatch_tcp_connect(void)
-{
-	socket_connection_t cnx;
-
-	char * endpoint = "bs.cphandheld.com";
-
-	memset(cnx.endpoint, '\0', SOCKET_IPENDPOINT_LEN+1);
-	memset(cnx.endpoint, endpoint, SOCKET_IPENDPOINT_LEN+1);
-
-	cnx.handler = http_handle_data;
-
-	cph_tcp_connect(&cnx);
-}
-
-
-void dispatch_tcp_send(void);
-
-/* Structure that defines the "delete-task" command line command.  This deletes
-the task that was previously created using the "create-command" command. */
-static const CLI_Command_Definition_t tcp_send_definition =
-{
-	(const int8_t *const) "send",
-	(const int8_t *const) "send:\r\n tells tcpip module to send\r\n\r\n",
-	dispatch_tcp_send, /* The function to run. */
-	0 /* A single parameter should be entered. */
-};
-
-void dispatch_tcp_send(void)
-{
-	char * endpoint = "bs.cphandheld.com";
-	char * packet = "20000000,01,01,00000007802F6399,E16B,00000007802DE16B,1973,16,0001,0000,00C3,0000,0001,EE000000,470000EE\r";
-
-	socket_connection_t cnx;
-
-	memset(cnx.endpoint, '\0', SOCKET_IPENDPOINT_LEN+1);
-	memset(cnx.endpoint, endpoint, SOCKET_IPENDPOINT_LEN+1);
-
-	cnx.handler = http_handle_data;
-
-
-	cph_tcp_send(&cnx, packet, http_handle_data);
-}
-
-void dispatch_tcp_suspend(void);
-
-/* Structure that defines the "delete-task" command line command.  This deletes
-the task that was previously created using the "create-command" command. */
-static const CLI_Command_Definition_t tcp_suspend_definition =
-{
-	(const int8_t *const) "suspend",
-	(const int8_t *const) "suspend:\r\n tells tcpip module to suspend connection\r\n\r\n",
-	dispatch_tcp_suspend, /* The function to run. */
-	0 /* A single parameter should be entered. */
-};
-
-void dispatch_tcp_suspend(void)
-{
-	char * endpoint = "bs.cphandheld.com";
-
-	socket_connection_t cnx;
-
-	memset(cnx.endpoint, '\0', SOCKET_IPENDPOINT_LEN+1);
-	memset(cnx.endpoint, endpoint, SOCKET_IPENDPOINT_LEN+1);
-
-	cnx.handler = http_handle_data;
-
-	cph_tcp_suspend(&cnx);
-}
-
-
-void dispatch_tcp_close(void);
-
-/* Structure that defines the "delete-task" command line command.  This deletes
-the task that was previously created using the "create-command" command. */
-static const CLI_Command_Definition_t tcp_close_definition =
-{
-	(const int8_t *const) "close",
-	(const int8_t *const) "close:\r\n tells tcpip module to close connection\r\n\r\n",
-	dispatch_tcp_close, /* The function to run. */
-	0 /* A single parameter should be entered. */
-};
-
-void dispatch_tcp_close(void)
-{
-	cph_tcp_close();
-}
 
 
 void dispatch_app(void);
@@ -329,10 +227,6 @@ void vRegisterCLICommands(void)
 	FreeRTOS_CLIRegisterCommand(&multi_parameter_echo_command_definition);
 	FreeRTOS_CLIRegisterCommand(&create_task_command_definition);
 	FreeRTOS_CLIRegisterCommand(&delete_task_command_definition);
-	FreeRTOS_CLIRegisterCommand(&tcp_connect_definition);
-	FreeRTOS_CLIRegisterCommand(&tcp_send_definition);
-	FreeRTOS_CLIRegisterCommand(&tcp_suspend_definition);
-	FreeRTOS_CLIRegisterCommand(&tcp_close_definition);
 	FreeRTOS_CLIRegisterCommand(&config_command_definition);
 	FreeRTOS_CLIRegisterCommand(&app_start_definition);
 
