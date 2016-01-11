@@ -39,6 +39,26 @@ extern volatile uint32_t g_ul_ms_ticks;
 /** Core definition */
 #define cortexm3
 
+
+/*! PWM channel for LED0 */
+#define CHANNEL_PWM_LED0 PWM_CHANNEL_4
+
+/*! PWM "PWM7" LED0 pin definitions.*/
+#define PIN_PWM_LED0_GPIO    PIO_PC21_IDX
+#define PIN_PWM_LED0_FLAGS   (PIO_PERIPH_B | PIO_DEFAULT)
+#define PIN_PWM_LED0_CHANNEL PWM_CHANNEL_4
+
+
+#define PWM_LED0		PWM
+#define PWM_LED0_ID 	ID_PWM
+
+#define PINS_PWM_PIO	PIOC
+#define PINS_PWM_ID		ID_PIOC
+#define PINS_PWM_TYPE	PIO_PERIPH_B
+#define PINS_PWM_MASK	PIO_PC21
+#define PINS_PWM_ATTR	PIO_DEFAULT
+
+
 /* ------------------------------------------------------------------------ */
 /* UART                                                                     */
 /* ------------------------------------------------------------------------ */

@@ -19,7 +19,8 @@
 #include "sysclk.h"
 #include "app_task.h"
 #include "gimbal.h"
-#include "stepper.h"
+#include "cph_stepper.h"
+#include "cph_pwm.h"
 
 xSemaphoreHandle app_start_signal = 0;
 
@@ -29,6 +30,7 @@ static void balance(void);
 static void calc_pid(void);
 
 static void run_stepper_test(void);
+static void run_pwm_test(void);
 
 
 
@@ -57,48 +59,79 @@ static void run_stepper_test(void)
 {
 	printf("starting stepper motor test\r\n");
 	printf("rotating - forward 360 degrees (full step)\r\n");
-	stepper_init(PIN_STEPPERMS1_IDX, PIN_STEPPERMS2_IDX, PIN_STEPPERSTEP_IDX, PIN_STEPPERSLEEP_IDX, PIN_STEPPERDIR_IDX, STEPPER_RPM, STEPPER_STEPS_PER_REV);
-	stepper_wake();
-//	stepper_rotate(360); // rotate 360 single step
-//	vTaskDelay(1000);
+	cph_stepper_init(PIN_STEPPERMS1_IDX, PIN_STEPPERMS2_IDX, PIN_STEPPERSTEP_IDX, PIN_STEPPERSLEEP_IDX, PIN_STEPPERDIR_IDX, STEPPER_RPM, STEPPER_STEPS_PER_REV);
+	cph_stepper_wake();
+	cph_stepper_rotate(360); // rotate 360 single step
 
-
-	while(true) {
-		stepper_rotate(360);
-		printf("wait 1 sec.\r\n");
-		vTaskDelay(1000);
-//		stepper_reverse();
-//		stepper_rotate(-360);
+//	while(true) {
+//		cph_stepper_rotate(360);
+//		printf("wait 1 sec.\r\n");
 //		vTaskDelay(1000);
-//		stepper_reverse();
-	}
+//		cph_stepper_reverse();
+//		cph_stepper_rotate(-360);
+//		vTaskDelay(1000);
+//		cph_stepper_reverse();
+//	}
 
 	printf("rotating - reverse 360 degrees (half step)\r\n");
-	stepper_setmode(STEP_HALF);
-	stepper_reverse();
-	stepper_rotate(360); // rotate reverse 360 half step
+	cph_stepper_setmode(STEP_HALF);
+	cph_stepper_reverse();
+	cph_stepper_rotate(360); // rotate reverse 360 half step
 
 	printf("set speed to 120 rpm\r\n");
-	stepper_setspeed(120); // set speed to 120 rpm
+	cph_stepper_setspeed(120); // set speed to 120 rpm
 
 	printf("rotating - forward 360 degrees (quarter step)\r\n");
-	stepper_setmode(STEP_QUARTER);
-	stepper_reverse();
-	stepper_rotate(360); // rotate forward 360 quarter step
+	cph_stepper_setmode(STEP_QUARTER);
+	cph_stepper_reverse();
+	cph_stepper_rotate(360); // rotate forward 360 quarter step
 
 	printf("rotating - reverse 360 degrees (eight step)\r\n");
-	stepper_setmode(STEP_EIGHT);
-	stepper_rotate(-360); // rotate reverse 360 eight step
+	cph_stepper_setmode(STEP_EIGHT);
+	cph_stepper_rotate(-360); // rotate reverse 360 eight step
 
 	printf("putting motor in sleep mode\r\n");
-	stepper_sleep(); // allow motor shaft to move freely
+	cph_stepper_sleep(); // allow motor shaft to move freely
+}
+
+static void run_pwm_test(void)
+{
+	printf("starting pwm test\r\n");
+	cph_pwm_init();
+
+
+	uint8_t fade_in = 1;
+	uint32_t ul_duty = 0;
+
+	while(true){
+
+		if(fade_in) {
+			ul_duty++;
+			if(ul_duty == 50)  {
+				fade_in = 0;
+			}
+		} else {
+			ul_duty--;
+			if(ul_duty == 0) {
+				fade_in = 1;
+			}
+		}
+
+
+		cph_pwm_setdutycycle(PWM, &g_pwm_channel_led, ul_duty);
+
+
+//		printf("running pwm...\r\n");
+		vTaskDelay(50);
+	}
 }
 
 
 static void app_handler_task(void *pvParameters)
 {
 
-	run_stepper_test();
+//	run_stepper_test();
+	run_pwm_test();
 
 	gimbal_init();
 

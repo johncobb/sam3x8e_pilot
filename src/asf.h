@@ -75,11 +75,17 @@
 #include <compiler.h>
 #include <status_codes.h>
 
+// From module: GPIO - General purpose Input/Output
+#include <gpio.h>
+
 // From module: Generic board support
 #include <board.h>
 
 // From module: Interrupt management - SAM implementation
 #include <interrupt.h>
+
+// From module: PDC - Peripheral DMA Controller Example
+#include <pdc.h>
 
 // From module: PIO - Parallel Input/Output Controller
 #include <pio.h>
@@ -88,6 +94,9 @@
 // From module: PMC - Power Management Controller
 #include <pmc.h>
 #include <sleep.h>
+
+// From module: PWM - Pulse Width Modulation
+#include <pwm.h>
 
 // From module: SAM3X startup code
 #include <exceptions.h>

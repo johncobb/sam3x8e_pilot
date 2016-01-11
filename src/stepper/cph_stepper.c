@@ -6,7 +6,7 @@
  */
 
 
-#include "stepper.h"
+#include "cph_stepper.h"
 
 // TODO: future pins to be used
 //static uint8_t io_enable = 0;
@@ -30,7 +30,7 @@ static float speed = 0;
 static float steps_perrevolution = 0;
 
 
-void stepper_init(uint8_t ms1, uint8_t ms2, uint8_t step, uint8_t sleep, uint8_t dir, float rpm, uint16_t steps_per_rev)
+void cph_stepper_init(uint8_t ms1, uint8_t ms2, uint8_t step, uint8_t sleep, uint8_t dir, float rpm, uint16_t steps_per_rev)
 {
 	io_ms1 = ms1;
 	io_ms2 = ms2;
@@ -39,20 +39,20 @@ void stepper_init(uint8_t ms1, uint8_t ms2, uint8_t step, uint8_t sleep, uint8_t
 	io_dir = dir;
 
 	clockwise = true;
-	stepper_setmode(STEP_FULL);
+	cph_stepper_setmode(STEP_FULL);
 
-	stepper_setstepsperrevolution(steps_per_rev);
-	stepper_setspeed(rpm);
-	stepper_wake();
+	cph_stepper_setstepsperrevolution(steps_per_rev);
+	cph_stepper_setspeed(rpm);
+	cph_stepper_wake();
 
 }
 
-void stepper_tick(void)
+void cph_stepper_tick(void)
 {
 
 }
 
-void stepper_enalbe(bool flag)
+void cph_stepper_enalbe(bool flag)
 {
 	enable = flag;
 	if(enable)
@@ -62,49 +62,49 @@ void stepper_enalbe(bool flag)
 
 }
 
-void stepper_reset(bool reset)
+void cph_stepper_reset(bool reset)
 {
 
 }
 
-void stepper_sleep(void)
+void cph_stepper_sleep(void)
 {
 	asleep = true;
 	pio_set_pin_low(PIN_STEPPERSLEEP_IDX); 	// LOW
 }
 
-void stepper_wake(void)
+void cph_stepper_wake(void)
 {
 	asleep = false;
 	pio_set_pin_high(PIN_STEPPERSLEEP_IDX); // HIGH
 }
 
-void stepper_setstepsperrevolution(uint16_t steps)
+void cph_stepper_setstepsperrevolution(uint16_t steps)
 {
 	steps_perrevolution = steps;
 }
 
-void stepper_reverse(void)
+void cph_stepper_reverse(void)
 {
 	clockwise = !clockwise;
 }
 
-uint8_t stepper_getstepmode(void)
+uint8_t cph_stepper_getstepmode(void)
 {
 	return step_mode;
 }
 
-float stepper_getspeed(void)
+float cph_stepper_getspeed(void)
 {
 	return speed;
 }
 
-float stepper_getstepsperrevolution(void)
+float cph_stepper_getstepsperrevolution(void)
 {
 	return steps_perrevolution;
 }
 
-void stepper_setmode(uint8_t mode)
+void cph_stepper_setmode(uint8_t mode)
 {
 	step_mode = mode;
 
@@ -143,7 +143,7 @@ void stepper_setmode(uint8_t mode)
 	}
 }
 
-void stepper_setspeed(float rpm)
+void cph_stepper_setspeed(float rpm)
 {
 
 //	speed = rpm;
@@ -156,7 +156,7 @@ void stepper_setspeed(float rpm)
 	step_delay_ms = (60 * 1000/steps_perrevolution/rpm);
 }
 
-void stepper_step(int16_t number_of_steps)
+void cph_stepper_step(int16_t number_of_steps)
 {
 
 	uint16_t sleep_delay = step_delay_ms/delay_factor;
@@ -190,12 +190,12 @@ void stepper_step(int16_t number_of_steps)
 	}
 }
 
-void stepper_rotate(int16_t degrees)
+void cph_stepper_rotate(int16_t degrees)
 {
-	float degrees_per_step = 360.0f / stepper_getstepsperrevolution();
+	float degrees_per_step = 360.0f / cph_stepper_getstepsperrevolution();
 	int16_t number_of_steps = degrees/degrees_per_step;
 
-	stepper_step(number_of_steps * delay_factor);
+	cph_stepper_step(number_of_steps * delay_factor);
 
 }
 

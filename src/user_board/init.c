@@ -151,6 +151,10 @@ void board_init(void)
 	pmc_enable_periph_clk(ID_PIOC);
 
 
+	pio_configure(PINS_PWM_PIO, PINS_PWM_TYPE, PINS_PWM_MASK, PINS_PWM_ATTR);
+//	gpio_configure_pin(PIN_PWM_LED0_GPIO, PIN_PWM_LED0_FLAGS);
+
+
 }
 
 
